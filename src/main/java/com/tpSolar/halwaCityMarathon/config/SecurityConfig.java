@@ -44,7 +44,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*")); // ✅ Update if needed for security
+        configuration.setAllowedOrigins(List.of("https://tpmarathon-a8bvf2cpafbrake8.canadacentral-01.azurewebsites.net")); // ✅ Update if needed for security
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
