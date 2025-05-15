@@ -136,7 +136,7 @@ public class CsvFile {
                     yield cell.getLocalDateTimeCellValue().toLocalDate().toString();
                 } else {
                     // use BigDecimal to preserve full number
-                    BigDecimal bd = new BigDecimal(cell.getNumericCellValue());
+                    BigDecimal bd = BigDecimal.valueOf(cell.getNumericCellValue());
                     yield bd.toPlainString(); // avoids scientific notation
                 }
             }

@@ -2,7 +2,8 @@ package com.tpSolar.halwaCityMarathon.controller;
 
 import com.tpSolar.halwaCityMarathon.config.WebConfig;
 import com.tpSolar.halwaCityMarathon.dto.LoginCred;
-import com.tpSolar.halwaCityMarathon.dto.RegistrationDto;
+import com.tpSolar.halwaCityMarathon.dto.RegistrationRequestDto;
+import com.tpSolar.halwaCityMarathon.dto.RegistrationResponseDto;
 import com.tpSolar.halwaCityMarathon.model.RegistrationDetails;
 import com.tpSolar.halwaCityMarathon.repository.RegistrationDetailsRepository;
 import com.tpSolar.halwaCityMarathon.service.RegistrationDetailsService;
@@ -10,7 +11,6 @@ import com.tpSolar.halwaCityMarathon.util.ApiResponse;
 import com.tpSolar.halwaCityMarathon.util.CsvFile;
 import com.tpSolar.halwaCityMarathon.util.ImageCompressUtil;
 import com.tpSolar.halwaCityMarathon.util.JwtTokenGeneration;
-import net.coobird.thumbnailator.Thumbnails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +26,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.util.Map;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*", methods = { RequestMethod.POST, RequestMethod.GET, RequestMethod.PUT, RequestMethod.DELETE })
@@ -93,7 +92,7 @@ public class LoginController {
     }
 
     @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> registrationDetails(@ModelAttribute RegistrationDto registrationDto, @RequestParam("image") MultipartFile imageFile) throws Exception{
+    public ResponseEntity<?> registrationDetails(@ModelAttribute RegistrationRequestDto registrationDto, @RequestParam("imageFile") MultipartFile imageFile) throws Exception{
 
         String contentType = imageFile.getContentType();
         byte[] compressedImage;
@@ -137,7 +136,7 @@ public class LoginController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/registrations")
     public ResponseEntity<?> getRegistrationDetails(Map<String, String> requestParams, Pageable pageable){
-        Page<RegistrationDto> result = registrationDetailsService.getRegistrationDetails(requestParams, pageable);
+        Page<RegistrationResponseDto> result = registrationDetailsService.getRegistrationDetails(requestParams, pageable);
         return new ResponseEntity<>(new ApiResponse(HttpStatus.OK, result), HttpStatus.OK);
     }
 

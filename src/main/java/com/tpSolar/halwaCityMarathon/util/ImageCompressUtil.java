@@ -2,12 +2,14 @@ package com.tpSolar.halwaCityMarathon.util;
 
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 
+@Component
 public class ImageCompressUtil {
 
     public byte[] getCompressedImage (MultipartFile imageFile) throws Exception{

@@ -1,11 +1,8 @@
 package com.tpSolar.halwaCityMarathon.dto;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Lob;
-
 import java.time.LocalDate;
 
-public class RegistrationDto {
+public class RegistrationRequestDto {
 
     private String eventName;
 
@@ -28,10 +25,6 @@ public class RegistrationDto {
     private String emergencyContact;
 
     private String tsize;
-
-    private String image;
-
-    private Long participantId;
 
     public String getEventName() {
         return eventName;
@@ -121,22 +114,6 @@ public class RegistrationDto {
         this.tsize = tsize;
     }
 
-    public String getImage() {
-        return image;
-    }
-
-    public void setImage(String image) {
-        this.image = image;
-    }
-
-    public Long getParticipantId() {
-        return participantId;
-    }
-
-    public void setParticipantId(Long participantId) {
-        this.participantId = participantId;
-    }
-
     @Override
     public String toString() {
         return "RegistrationDto{" +
@@ -151,8 +128,6 @@ public class RegistrationDto {
                 ", contactNumber='" + contactNumber + '\'' +
                 ", emergencyContact='" + emergencyContact + '\'' +
                 ", tsize='" + tsize + '\'' +
-                ", image='" + image + '\'' +
-                ", participantId=" + participantId +
                 '}';
     }
 }

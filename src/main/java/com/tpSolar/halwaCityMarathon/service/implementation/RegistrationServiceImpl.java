@@ -1,7 +1,8 @@
 package com.tpSolar.halwaCityMarathon.service.implementation;
 
 import com.tpSolar.halwaCityMarathon.config.WebConfig;
-import com.tpSolar.halwaCityMarathon.dto.RegistrationDto;
+import com.tpSolar.halwaCityMarathon.dto.RegistrationRequestDto;
+import com.tpSolar.halwaCityMarathon.dto.RegistrationResponseDto;
 import com.tpSolar.halwaCityMarathon.model.RegistrationDetails;
 import com.tpSolar.halwaCityMarathon.repository.RegistrationDetailsRepository;
 import com.tpSolar.halwaCityMarathon.service.RegistrationDetailsService;
@@ -28,13 +29,13 @@ public class RegistrationServiceImpl implements RegistrationDetailsService {
     @Autowired
     RegistrationDetailsRepository registrationDetailsRepository;
     @Override
-    public Page<RegistrationDto> getRegistrationDetails(Map<String, String> requestParams, Pageable pageable) {
+    public Page<RegistrationResponseDto> getRegistrationDetails(Map<String, String> requestParams, Pageable pageable) {
         Pageable resolvedPageable = webConfig.resolvePageable(requestParams, pageable);
         List<RegistrationDetails> registrationList = registrationDetailsRepository.findAll();
-        List<RegistrationDto> participantRegistrationList = new ArrayList<>();
+        List<RegistrationResponseDto> participantRegistrationList = new ArrayList<>();
         for(RegistrationDetails registrations: registrationList){
             logger.info("The Participant Registration --{}",registrations);
-            RegistrationDto totalRegistrationList = new RegistrationDto();
+            RegistrationResponseDto totalRegistrationList = new RegistrationResponseDto();
             totalRegistrationList.setAadhar(registrations.getAadhar());
             totalRegistrationList.setAge(registrations.getAge());
             totalRegistrationList.setContactNumber(registrations.getContactNumber());
@@ -54,12 +55,8 @@ public class RegistrationServiceImpl implements RegistrationDetailsService {
         // Apply pagination manually
         int start = (int) resolvedPageable.getOffset();
         int end = Math.min((start + resolvedPageable.getPageSize()), participantRegistrationList.size());
-        List<RegistrationDto> pagedList = participantRegistrationList.subList(start, end);
+        List<RegistrationResponseDto> pagedList = participantRegistrationList.subList(start, end);
 
         return new PageImpl<>(pagedList, resolvedPageable, participantRegistrationList.size());
     }
-
-
-
-
 }
