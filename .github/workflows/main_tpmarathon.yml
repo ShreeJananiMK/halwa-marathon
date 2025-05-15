@@ -62,5 +62,5 @@ jobs:
         with:
           app-name: 'tpmarathon'
           slot-name: 'Production'
-          package: '*.jar'
+          package: 'java-app/*.jar'
           
