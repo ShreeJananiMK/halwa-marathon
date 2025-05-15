@@ -46,7 +46,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         /*if (isLogin || isRegistrationPost) {
             logger.info("Allowing access to login or registration POST endpoint.");
