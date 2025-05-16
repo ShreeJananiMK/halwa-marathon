@@ -28,7 +28,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.util.Map;
 
-@CrossOrigin(origins = "*", allowedHeaders = "*", methods = { RequestMethod.POST, RequestMethod.GET, RequestMethod.PUT, RequestMethod.DELETE })
+@CrossOrigin(origins = "*", allowedHeaders = "*", methods = { RequestMethod.POST, RequestMethod.GET, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS })
 @RestController
 @RequestMapping("/halwaCityMarathon")
 public class LoginController {
@@ -96,6 +96,7 @@ public class LoginController {
 
         String contentType = imageFile.getContentType();
         byte[] compressedImage;
+        logger.info("Original file size: {} KB", imageFile.getSize() / 1024);
         BufferedImage originalImage = ImageIO.read(imageFile.getInputStream());
         if (contentType == null || !(contentType.equalsIgnoreCase("image/jpeg") || contentType.equalsIgnoreCase("image/png"))) {
             return ResponseEntity.badRequest().body("Only JPEG images are allowed.");
@@ -108,21 +109,25 @@ public class LoginController {
         }
         RegistrationDetails registrationDetails = new RegistrationDetails();
         if(registrationDto!=null){
-            if(registrationDetailsRepo.alreadyRegisteredParticipant(registrationDto.getAadhar()) != 1){
-            registrationDetails.setEventName(registrationDto.getEventName());
-            registrationDetails.setParticipantName(registrationDto.getParticipantName());
-            registrationDetails.setAadhar(registrationDto.getAadhar());
-            registrationDetails.setAge(registrationDto.getAge());
-            registrationDetails.setDob(registrationDto.getDob());
-            registrationDetails.setBloodGroup(registrationDto.getBloodGroup());
-            registrationDetails.setEmail(registrationDto.getEmail());
-            registrationDetails.setGender(registrationDto.getGender());
-            registrationDetails.setContactNumber(registrationDto.getContactNumber());
-            registrationDetails.setEmergencyContact(registrationDto.getEmergencyContact());
-            registrationDetails.setImage(compressedImage);
-            registrationDetails.setTsize(registrationDto.getTsize());
-            registrationDetailsRepo.save(registrationDetails);
-            return new ResponseEntity<>(new ApiResponse(HttpStatus.OK,"Data inserted successfully"),HttpStatus.OK);
+            logger.info("exists count --{}", registrationDetailsRepo.alreadyRegisteredParticipant(registrationDto.getAadhar()));
+            logger.info("AADhar value --{}", registrationDto.getAadhar());
+            if(registrationDetailsRepo.alreadyRegisteredParticipant(registrationDto.getAadhar()) == 0){
+                registrationDetails.setEventName(registrationDto.getEventName());
+                registrationDetails.setParticipantName(registrationDto.getParticipantName());
+                registrationDetails.setAadhar(registrationDto.getAadhar());
+                registrationDetails.setAge(registrationDto.getAge());
+                registrationDetails.setDob(registrationDto.getDob());
+                registrationDetails.setBloodGroup(registrationDto.getBloodGroup());
+                registrationDetails.setEmail(registrationDto.getEmail());
+                registrationDetails.setGender(registrationDto.getGender());
+                registrationDetails.setContactNumber(registrationDto.getContactNumber());
+                registrationDetails.setEmergencyContact(registrationDto.getEmergencyContact());
+                registrationDetails.setImage(compressedImage);
+                registrationDetails.setTsize(registrationDto.getTsize());
+                registrationDetailsRepo.save(registrationDetails);
+                logger.info("Check --{}", registrationDetails);
+                String participantNumber = registrationDetailsRepo.getParticipantNumber(registrationDetails.getAadhar());
+                return new ResponseEntity<>(new ApiResponse(HttpStatus.OK,"Data inserted successfully and the paticipant number is: " + participantNumber),HttpStatus.OK);
         }
             else{
                 return new ResponseEntity<>(new ApiResponse(HttpStatus.CONFLICT,"Participant already registered"),HttpStatus.CONFLICT);

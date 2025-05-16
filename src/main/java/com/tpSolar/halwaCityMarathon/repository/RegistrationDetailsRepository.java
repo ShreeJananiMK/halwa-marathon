@@ -9,7 +9,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface RegistrationDetailsRepository extends JpaRepository<RegistrationDetails, Long> {
 
-    @Query(value= "select exists (select 1 from registration_details where participant_aadhar = ?1 )",nativeQuery = true)
+    @Query(value= "select count(*) from registration_details where participant_aadhar = ?1 ",nativeQuery = true)
     Long alreadyRegisteredParticipant(String aadhar);
 
+    @Query(value= "select participant_number from registration_details where participant_aadhar = ?1 ",nativeQuery = true)
+    String getParticipantNumber (String aadhar);
 }
