@@ -1,3 +1,4 @@
+
 package com.tpSolar.halwaCityMarathon.security;
 
 import com.tpSolar.halwaCityMarathon.util.JwtTokenGeneration;
@@ -46,7 +47,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             filterChain.doFilter(request, response);
             return;
@@ -90,4 +90,3 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
-
