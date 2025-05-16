@@ -15,17 +15,16 @@ import java.util.Date;
 public class JwtTokenGeneration {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenGeneration.class);
-    @Value("${app.jwtSecret}")
-    private String jwtSecret;
+
     @Value("${app.jwtExpirationInMs}")
     private int jwtExpirationInMs;
 
-    public String generateToken(String userName) {
+    public String generateToken(String userName, String jwtSecret) {
         return Jwts.builder()
                 .setSubject(userName)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationInMs))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+                .signWith(getSigningKey(jwtSecret), SignatureAlgorithm.HS512)
                 .compact();
 
     }
@@ -54,14 +53,14 @@ public class JwtTokenGeneration {
         }
     }*/
 
-    public String extractUsername(String token) {
+    public String extractUsername(String token, String jwtSecret) {
         return Jwts.parser()
                 .setSigningKey(jwtSecret)
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
     }
-    public boolean validateToken(String token,Object userName ) {
+    public boolean validateToken(String token,Object userName, String jwtSecret ) {
         try {
             Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token);
             return true;
@@ -78,7 +77,7 @@ public class JwtTokenGeneration {
         }
         return false;
     }
-    public SecretKey getSigningKey() {
+    public SecretKey getSigningKey(String jwtSecret) {
         byte[] keyBytes = Base64.getDecoder().decode(jwtSecret);
         return new SecretKeySpec(keyBytes, SignatureAlgorithm.HS512.getJcaName());
     }

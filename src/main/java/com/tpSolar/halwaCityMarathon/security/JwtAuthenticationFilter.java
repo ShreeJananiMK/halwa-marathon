@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,6 +29,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private JwtTokenGeneration JwtTokenGeneration;
 
+    @Value("${app.jwtSecret}")
+    private String jwtSecret;
+
+    @Value("${app.tata.jwtSecret}")
+    private String tataJwtSecret;
+
+    private String secretKey;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -43,7 +52,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         logger.info("Authorization Header: -----{}" , header);
 
         // Allow public endpoints without token
-        if (uri.equals("/halwaCityMarathon/login") || uri.equals("/halwaCityMarathon/register")) {
+        if (uri.equals("/halwaCityMarathon/login") || uri.equals("/halwaCityMarathon/register") || uri.equals("/halwaCityMarathon/tataLogin")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -58,13 +67,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }*/
 
+        if(uri.equals("/halwaCityMarathon/registrations")){
+            secretKey = jwtSecret;
+        }
+        else { secretKey = tataJwtSecret;}
         // Now validate token for protected routes
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
             logger.info("JWT token received: " + token); // Add logging to see the token being passed
             try {
-                if (JwtTokenGeneration.validateToken(token, null)) {
-                    String username = JwtTokenGeneration.extractUsername(token);
+                if (JwtTokenGeneration.validateToken(token, null, secretKey)) {
+                    String username = JwtTokenGeneration.extractUsername(token, secretKey);
                     logger.info("Token validated for user: " + username);
 
                     UsernamePasswordAuthenticationToken authentication =

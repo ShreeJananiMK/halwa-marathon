@@ -11,6 +11,8 @@ import com.tpSolar.halwaCityMarathon.util.ApiResponse;
 import com.tpSolar.halwaCityMarathon.util.CsvFile;
 import com.tpSolar.halwaCityMarathon.util.ImageCompressUtil;
 import com.tpSolar.halwaCityMarathon.util.JwtTokenGeneration;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.util.Base64;
 import java.util.Map;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*", methods = { RequestMethod.POST, RequestMethod.GET, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS })
@@ -56,8 +59,20 @@ public class LoginController {
     @Value("${app.User_Name}")
     private String User_Name;
 
+    @Value("${app.Tata_User_Name}")
+    private String Tata_User;
+
     @Value("${app.Password}")
     private String Password;
+
+    @Value("${app.Tata_Password}")
+    private String Tata_Password;
+
+    @Value("${app.jwtSecret}")
+    private String jwtSecret;
+
+    @Value("${app.tata.jwtSecret}")
+    private String tataJwtSecret;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestHeader(value = "Authorization", required = false) String token, @RequestBody LoginCred loginCred) throws Exception{
@@ -69,9 +84,9 @@ public class LoginController {
         // If a token is provided, validate it and return user details
         if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7); // Remove "Bearer " prefix
-            String username = jwtTokenGeneration.extractUsername(token);
+            String username = jwtTokenGeneration.extractUsername(token, jwtSecret);
 
-            if (username != null && username.equals(User_Name) && jwtTokenGeneration.validateToken(token, username)) {
+            if (username != null && username.equals(User_Name) && jwtTokenGeneration.validateToken(token, username, jwtSecret)) {
                 return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "Token is valid", token, "Admin"));
             }
             else {
@@ -83,10 +98,42 @@ public class LoginController {
         logger.info("The Input username : ---- : {}",loginCred.getUserName());
         logger.info("The Input password : ---- : {}",loginCred.getPassWord());
         if(loginCred.getUserName().equals(User_Name) && loginCred.getPassWord().equals(Password)){
-            token = jwtTokenGeneration.generateToken(User_Name);
+            token = jwtTokenGeneration.generateToken(User_Name, jwtSecret);
             return new ResponseEntity<>(new ApiResponse(HttpStatus.ACCEPTED,"You are successfully logged in", token, "Admin"), HttpStatus.ACCEPTED);
         }
         else if (!loginCred.getUserName().equals(User_Name) && loginCred.getPassWord().equals(Password)){
+            return new ResponseEntity<>(new ApiResponse(HttpStatus.UNAUTHORIZED,"Incorrect Username"),HttpStatus.UNAUTHORIZED);}
+        else return new ResponseEntity<>(new ApiResponse(HttpStatus.UNAUTHORIZED,"Incorrect password"),HttpStatus.UNAUTHORIZED);
+    }
+
+    @PostMapping("/tataLogin")
+    public ResponseEntity<?> tataLogin(@RequestHeader(value = "Authorization", required = false) String token, @RequestBody LoginCred loginCred) throws Exception{
+        logger.info("The Input Tata login  : ---- : {}",loginCred);
+
+            /*var key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+            System.out.println(Base64.getEncoder().encodeToString(key.getEncoded()));*/
+
+        // If a token is provided, validate it and return user details
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7); // Remove "Bearer " prefix
+            String username = jwtTokenGeneration.extractUsername(token, tataJwtSecret);
+
+            if (username != null && username.equals(Tata_User) && jwtTokenGeneration.validateToken(token, username, tataJwtSecret)) {
+                return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "Token is valid", token, "Tata Admin"));
+            }
+            else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new ApiResponse(HttpStatus.UNAUTHORIZED, "Invalid or expired token"));
+            }
+        }
+
+        logger.info("The Input tata admin username : ---- : {}",loginCred.getUserName());
+        logger.info("The Input tata admin password : ---- : {}",loginCred.getPassWord());
+        if(loginCred.getUserName().equals(Tata_User) && loginCred.getPassWord().equals(Tata_Password)){
+            token = jwtTokenGeneration.generateToken(Tata_User, tataJwtSecret);
+            return new ResponseEntity<>(new ApiResponse(HttpStatus.ACCEPTED,"You are successfully logged in", token, "Tata Admin"), HttpStatus.ACCEPTED);
+        }
+        else if (!loginCred.getUserName().equals(Tata_User) && loginCred.getPassWord().equals(Tata_Password)){
             return new ResponseEntity<>(new ApiResponse(HttpStatus.UNAUTHORIZED,"Incorrect Username"),HttpStatus.UNAUTHORIZED);}
         else return new ResponseEntity<>(new ApiResponse(HttpStatus.UNAUTHORIZED,"Incorrect password"),HttpStatus.UNAUTHORIZED);
     }
@@ -146,7 +193,7 @@ public class LoginController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @PostMapping("/uploadExcel")
+    @PostMapping("/tataAdmin/uploadExcel")
     public ResponseEntity<?> uploadRegistrations (@RequestParam("file") MultipartFile file) throws Exception{
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body("File is empty");

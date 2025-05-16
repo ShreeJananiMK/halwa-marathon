@@ -32,9 +32,10 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/halwaCityMarathon/login").permitAll()
+                        .requestMatchers("/halwaCityMarathon/tataLogin").permitAll()
                         .requestMatchers(HttpMethod.POST, "/halwaCityMarathon/register").permitAll()
                         .requestMatchers(HttpMethod.GET, "/halwaCityMarathon/registrations").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/halwaCityMarathon/uploadExcel").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/halwaCityMarathon/tataAdmin/uploadExcel").authenticated()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
