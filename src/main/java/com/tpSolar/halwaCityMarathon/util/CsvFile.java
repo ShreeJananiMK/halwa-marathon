@@ -1,14 +1,11 @@
 package com.tpSolar.halwaCityMarathon.util;
 import com.tpSolar.halwaCityMarathon.model.RegistrationDetails;
 import com.tpSolar.halwaCityMarathon.repository.RegistrationDetailsRepository;
-import org.apache.poi.ooxml.POIXMLDocumentPart;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.apache.poi.xssf.usermodel.XSSFDrawing;
-import org.apache.poi.xssf.usermodel.XSSFPicture;
-import org.apache.poi.xssf.usermodel.XSSFShape;
-import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,9 +14,7 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 @Component
@@ -28,12 +23,15 @@ public class CsvFile {
     @Autowired
     RegistrationDetailsRepository registrationDetailsRepository;
 
-    private static final Pattern EMAIL_PATTERN =
-            Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
-    private static final Pattern DIGIT_10_PATTERN = Pattern.compile("^\\d{10}$");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
+    private static final Pattern CONTACT_PATTERN = Pattern.compile("^\\d{10}$");
     private static final Pattern AADHAR_PATTERN = Pattern.compile("^\\d{12}$");
 
+    private static final Logger logger = LoggerFactory.getLogger(CsvFile.class);
+
     public String uploadExcel(MultipartFile file) {
+        boolean successFlag = false;
+        StringBuilder resultMsg = new StringBuilder();
         try (InputStream inputStream = file.getInputStream();
              XSSFWorkbook workbook = new XSSFWorkbook(inputStream)) {
 
@@ -44,29 +42,13 @@ public class CsvFile {
             Row headerRow = sheet.getRow(0);
             if (headerRow == null) throw new IllegalArgumentException("Header row missing");
 
+            List<RegistrationDetails> registrationDetails = new ArrayList<>();
+
             for (Cell cell : headerRow) {
                 headerMap.put(cell.getStringCellValue().trim().toLowerCase(), cell.getColumnIndex());
             }
 
-            Integer imageColIndex = headerMap.get("image");
-
-            // Extract image data
-            Map<Integer, byte[]> rowImageMap = new HashMap<>();
-            for (POIXMLDocumentPart dr : sheet.getRelations()) {
-                if (dr instanceof XSSFDrawing drawing) {
-                    for (XSSFShape shape : drawing.getShapes()) {
-                        if (shape instanceof XSSFPicture picture) {
-                            XSSFClientAnchor anchor = (XSSFClientAnchor) picture.getAnchor();
-                            int rowNum = anchor.getRow1();
-                            int colNum = anchor.getCol1();
-                            if (imageColIndex != null && colNum == imageColIndex) {
-                                byte[] imageBytes = picture.getPictureData().getData();
-                                rowImageMap.put(rowNum, imageBytes);
-                            }
-                        }
-                    }
-                }
-            }
+            Set<String> aadhaarList = new HashSet<>();
 
             // Iterate rows and validate before insert
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
@@ -79,23 +61,46 @@ public class CsvFile {
                 String contactNumber = getCellValue(row, headerMap.get("contact number"));
                 String emergencyContactNumber = getCellValue(row, headerMap.get("emergency contact number"));
 
-                if (!DIGIT_10_PATTERN.matcher(contactNumber).matches()) {
-                    System.out.println("Invalid contact number in row " + i);
-                    continue;
-                }
-
-                if (!DIGIT_10_PATTERN.matcher(emergencyContactNumber).matches()) {
-                    System.out.println("Invalid emergency contact number in row " + i);
-                    continue;
-                }
-
                 if (!AADHAR_PATTERN.matcher(aadharNumber).matches()) {
-                    System.out.println("Invalid Aadhar in row " + i);
+                    String msg = " Invalid Aadhar in row " + i + ",";
+                    resultMsg.append(msg);
+                    logger.info("Invalid Aadhar in row ---{}", i);
+                    continue;
+                }
+
+                if(aadhaarList.contains(aadharNumber)){
+                    String msg = " Duplicate Aadhar in row " + i + ",";
+                    resultMsg.append(msg);
+                    logger.info("Duplicate Aadhar in row ---{}", i);
+                    continue;
+                }
+                aadhaarList.add(aadharNumber);
+                Long result = registrationDetailsRepository.alreadyRegisteredParticipant(aadharNumber);
+                if(result >=1){
+                    String msg =  " "+ aadharNumber + " already exists,";
+                    resultMsg.append(msg);
+                    logger.info("Aadhar already exists ---{}", aadharNumber);
+                    continue;
+                }
+
+                if (!CONTACT_PATTERN.matcher(contactNumber).matches()) {
+                    String msg = " Invalid contact number in row " + i + ",";
+                    resultMsg.append(msg);
+                    logger.info("Invalid contact number in row ---{}", i);
+                    continue;
+                }
+
+                if (!CONTACT_PATTERN.matcher(emergencyContactNumber).matches()) {
+                    String msg = " Invalid emergency contact number in row " + i + ",";
+                    resultMsg.append(msg);
+                    logger.info("Invalid emergency contact number in row ---{}", i);
                     continue;
                 }
 
                 if (!EMAIL_PATTERN.matcher(email).matches()) {
-                    System.out.println("Invalid email in row " + i);
+                    String msg = " Invalid email in row " + i + ",";
+                    resultMsg.append(msg);
+                    logger.info("Invalid email in row ---{}", i);
                     continue;
                 }
 
@@ -105,7 +110,6 @@ public class CsvFile {
                 String tsize = getCellValue(row, headerMap.get("tshirt size"));
                 String eventName = getCellValue(row, headerMap.get("event name"));
                 String gender = getCellValue(row, headerMap.get("gender"));
-                byte[] imageBytes = rowImageMap.get(i);
 
                 RegistrationDetails reg = new RegistrationDetails();
                 reg.setParticipantName(name);
@@ -119,12 +123,17 @@ public class CsvFile {
                 reg.setTsize(tsize);
                 reg.setEventName(eventName);
                 reg.setGender(gender);
-                reg.setImage(imageBytes);
-
-                registrationDetailsRepository.save(reg);
+                registrationDetails.add(reg);
             }
-
-            return "Excel uploaded and data saved successfully";
+            logger.info("The data to be inserted : ---{}",registrationDetails );
+             for(RegistrationDetails regDetails : registrationDetails){
+                 registrationDetailsRepository.save(regDetails);
+                 successFlag = true;
+             }
+             if(successFlag){
+            return "Excel uploaded and data saved successfully. " +  resultMsg ;}
+             else{
+            return " Data upload is unsuccessful. " +  resultMsg;}
 
         } catch (Exception e) {
             return "Error reading Excel file: " + e.getMessage();
@@ -142,7 +151,12 @@ public class CsvFile {
                 if (DateUtil.isCellDateFormatted(cell)) {
                     yield cell.getLocalDateTimeCellValue().toLocalDate().toString();
                 } else {
-                    yield BigDecimal.valueOf(cell.getNumericCellValue()).toPlainString();
+                    double num = cell.getNumericCellValue();
+                    if (num == Math.floor(num)) {
+                        yield String.valueOf((long) num); // remove .0
+                    } else {
+                        yield BigDecimal.valueOf(num).toPlainString();
+                    }
                 }
             }
             case BOOLEAN -> String.valueOf(cell.getBooleanCellValue());
