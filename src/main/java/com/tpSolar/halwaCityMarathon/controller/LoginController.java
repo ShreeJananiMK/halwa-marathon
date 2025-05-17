@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -154,7 +155,7 @@ public class LoginController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/registrations")
-    public ResponseEntity<?> getRegistrationDetails(Map<String, String> requestParams, Pageable pageable){
+    public ResponseEntity<?> getRegistrationDetails(@RequestParam Map<String, String> requestParams, @PageableDefault(page = 0, size = 20) Pageable pageable){
         Page<RegistrationResponseDto> result = registrationDetailsService.getRegistrationDetails(requestParams, pageable);
         return new ResponseEntity<>(new ApiResponse(HttpStatus.OK, result), HttpStatus.OK);
     }
