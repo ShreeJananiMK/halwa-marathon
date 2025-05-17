@@ -32,11 +32,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Value("${app.jwtSecret}")
     private String jwtSecret;
 
-    @Value("${app.tata.jwtSecret}")
-    private String tataJwtSecret;
-
-    private String secretKey;
-
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -52,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         logger.info("Authorization Header: -----{}" , header);
 
         // Allow public endpoints without token
-        if (uri.equals("/halwaCityMarathon/login") || uri.equals("/halwaCityMarathon/register") || uri.equals("/halwaCityMarathon/tataLogin")) {
+        if (uri.equals("/halwaCityMarathon/login") || uri.equals("/halwaCityMarathon/register")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -67,17 +62,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }*/
 
-        if(uri.equals("/halwaCityMarathon/registrations")){
-            secretKey = jwtSecret;
-        }
-        else { secretKey = tataJwtSecret;}
         // Now validate token for protected routes
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
             logger.info("JWT token received: " + token); // Add logging to see the token being passed
             try {
-                if (JwtTokenGeneration.validateToken(token, null, secretKey)) {
-                    String username = JwtTokenGeneration.extractUsername(token, secretKey);
+                if (JwtTokenGeneration.validateToken(token, null, jwtSecret)) {
+                    String username = JwtTokenGeneration.extractUsername(token, jwtSecret);
                     logger.info("Token validated for user: " + username);
 
                     UsernamePasswordAuthenticationToken authentication =

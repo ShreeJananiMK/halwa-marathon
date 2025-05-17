@@ -71,9 +71,6 @@ public class LoginController {
     @Value("${app.jwtSecret}")
     private String jwtSecret;
 
-    @Value("${app.tata.jwtSecret}")
-    private String tataJwtSecret;
-
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestHeader(value = "Authorization", required = false) String token, @RequestBody LoginCred loginCred) throws Exception{
         logger.info("The Input  : ---- : {}",loginCred);
@@ -86,12 +83,12 @@ public class LoginController {
             token = token.substring(7); // Remove "Bearer " prefix
             String username = jwtTokenGeneration.extractUsername(token, jwtSecret);
 
-            if (username != null && username.equals(User_Name) && jwtTokenGeneration.validateToken(token, username, jwtSecret)) {
+            if (username != null && username.equals(User_Name) && jwtTokenGeneration.validateToken(token, username, jwtSecret)){
                 return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "Token is valid", token, "Admin"));
-            }
-            else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new ApiResponse(HttpStatus.UNAUTHORIZED, "Invalid or expired token"));
+            } else if (username != null && username.equals(Tata_User) && jwtTokenGeneration.validateToken(token, username, jwtSecret)) {
+                return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "Token is valid", token, "Tata Admin"));
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiResponse(HttpStatus.UNAUTHORIZED, "Invalid or expired token"));
             }
         }
 
@@ -100,40 +97,10 @@ public class LoginController {
         if(loginCred.getUserName().equals(User_Name) && loginCred.getPassWord().equals(Password)){
             token = jwtTokenGeneration.generateToken(User_Name, jwtSecret);
             return new ResponseEntity<>(new ApiResponse(HttpStatus.ACCEPTED,"You are successfully logged in", token, "Admin"), HttpStatus.ACCEPTED);
-        }
-        else if (!loginCred.getUserName().equals(User_Name) && loginCred.getPassWord().equals(Password)){
-            return new ResponseEntity<>(new ApiResponse(HttpStatus.UNAUTHORIZED,"Incorrect Username"),HttpStatus.UNAUTHORIZED);}
-        else return new ResponseEntity<>(new ApiResponse(HttpStatus.UNAUTHORIZED,"Incorrect password"),HttpStatus.UNAUTHORIZED);
-    }
-
-    @PostMapping("/tataLogin")
-    public ResponseEntity<?> tataLogin(@RequestHeader(value = "Authorization", required = false) String token, @RequestBody LoginCred loginCred) throws Exception{
-        logger.info("The Input Tata login  : ---- : {}",loginCred);
-
-            /*var key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
-            System.out.println(Base64.getEncoder().encodeToString(key.getEncoded()));*/
-
-        // If a token is provided, validate it and return user details
-        if (token != null && token.startsWith("Bearer ")) {
-            token = token.substring(7); // Remove "Bearer " prefix
-            String username = jwtTokenGeneration.extractUsername(token, tataJwtSecret);
-
-            if (username != null && username.equals(Tata_User) && jwtTokenGeneration.validateToken(token, username, tataJwtSecret)) {
-                return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "Token is valid", token, "Tata Admin"));
-            }
-            else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new ApiResponse(HttpStatus.UNAUTHORIZED, "Invalid or expired token"));
-            }
-        }
-
-        logger.info("The Input tata admin username : ---- : {}",loginCred.getUserName());
-        logger.info("The Input tata admin password : ---- : {}",loginCred.getPassWord());
-        if(loginCred.getUserName().equals(Tata_User) && loginCred.getPassWord().equals(Tata_Password)){
-            token = jwtTokenGeneration.generateToken(Tata_User, tataJwtSecret);
+        } else if (loginCred.getUserName().equals(Tata_User) && loginCred.getPassWord().equals(Tata_Password)) {
+            token = jwtTokenGeneration.generateToken(Tata_User, jwtSecret);
             return new ResponseEntity<>(new ApiResponse(HttpStatus.ACCEPTED,"You are successfully logged in", token, "Tata Admin"), HttpStatus.ACCEPTED);
-        }
-        else if (!loginCred.getUserName().equals(Tata_User) && loginCred.getPassWord().equals(Tata_Password)){
+        } else if (!loginCred.getUserName().equals(User_Name) || !loginCred.getUserName().equals(Tata_User)){
             return new ResponseEntity<>(new ApiResponse(HttpStatus.UNAUTHORIZED,"Incorrect Username"),HttpStatus.UNAUTHORIZED);}
         else return new ResponseEntity<>(new ApiResponse(HttpStatus.UNAUTHORIZED,"Incorrect password"),HttpStatus.UNAUTHORIZED);
     }
@@ -193,7 +160,7 @@ public class LoginController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @PostMapping("/tataAdmin/uploadExcel")
+    @PostMapping("/uploadExcel")
     public ResponseEntity<?> uploadRegistrations (@RequestParam("file") MultipartFile file) throws Exception{
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body("File is empty");

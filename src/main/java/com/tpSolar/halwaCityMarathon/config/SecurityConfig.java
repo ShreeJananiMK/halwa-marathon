@@ -35,7 +35,7 @@ public class SecurityConfig {
                         .requestMatchers("/halwaCityMarathon/tataLogin").permitAll()
                         .requestMatchers(HttpMethod.POST, "/halwaCityMarathon/register").permitAll()
                         .requestMatchers(HttpMethod.GET, "/halwaCityMarathon/registrations").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/halwaCityMarathon/tataAdmin/uploadExcel").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/halwaCityMarathon/uploadExcel").authenticated()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
