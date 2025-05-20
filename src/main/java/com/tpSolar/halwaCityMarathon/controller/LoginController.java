@@ -7,10 +7,7 @@ import com.tpSolar.halwaCityMarathon.dto.RegistrationResponseDto;
 import com.tpSolar.halwaCityMarathon.model.RegistrationDetails;
 import com.tpSolar.halwaCityMarathon.repository.RegistrationDetailsRepository;
 import com.tpSolar.halwaCityMarathon.service.RegistrationDetailsService;
-import com.tpSolar.halwaCityMarathon.util.ApiResponse;
-import com.tpSolar.halwaCityMarathon.util.CsvFile;
-import com.tpSolar.halwaCityMarathon.util.ImageCompressUtil;
-import com.tpSolar.halwaCityMarathon.util.JwtTokenGeneration;
+import com.tpSolar.halwaCityMarathon.util.*;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
@@ -72,6 +69,9 @@ public class LoginController {
     @Value("${app.jwtSecret}")
     private String jwtSecret;
 
+    @Autowired
+    MailHandler mailHandler;
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestHeader(value = "Authorization", required = false) String token, @RequestBody LoginCred loginCred) throws Exception{
         logger.info("The Input  : ---- : {}",loginCred);
@@ -107,25 +107,36 @@ public class LoginController {
     }
 
     @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> registrationDetails(@ModelAttribute RegistrationRequestDto registrationDto, @RequestParam("imageFile") MultipartFile imageFile) throws Exception{
+    public ResponseEntity<?> registrationDetails(@ModelAttribute RegistrationRequestDto registrationDto, @RequestParam(value = "imageFile", required = false) MultipartFile imageFile) throws Exception{
 
-        String contentType = imageFile.getContentType();
-        byte[] compressedImage;
-        logger.info("Original file size: {} KB", imageFile.getSize() / 1024);
-        BufferedImage originalImage = ImageIO.read(imageFile.getInputStream());
-        if (contentType == null || !(contentType.equalsIgnoreCase("image/jpeg") || contentType.equalsIgnoreCase("image/png"))) {
-            return ResponseEntity.badRequest().body("Only JPEG images are allowed.");
-        }
-        else if (originalImage == null) {
-            return ResponseEntity.badRequest().body("Invalid image content.");
-        }
-        else{
-            compressedImage = imageCompressUtil.getCompressedImage(imageFile);
-        }
         RegistrationDetails registrationDetails = new RegistrationDetails();
+        if(imageFile != null) logger.info("Original file size: {} KB", imageFile.getSize() / 1024);
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String contentType = imageFile.getContentType();
+
+            if (contentType == null ||
+                    !(contentType.equalsIgnoreCase("image/jpeg") ||
+                            contentType.equalsIgnoreCase("image/jpg") ||
+                            contentType.equalsIgnoreCase("image/png"))) {
+                return ResponseEntity.badRequest().body("Only JPEG, JPG, or PNG images are allowed.");
+            }
+
+            BufferedImage originalImage = ImageIO.read(imageFile.getInputStream());
+
+            if (originalImage == null) {
+                return ResponseEntity.badRequest().body("Invalid image content.");
+            }
+
+            // Compress the image
+            byte[] compressedImage = imageCompressUtil.getCompressedImage(imageFile);
+
+            // You can now store compressedImage in your RegistrationDetails or wherever needed
+            registrationDetails.setImage(compressedImage); // example setter
+        }
+
         if(registrationDto!=null){
             logger.info("exists count --{}", registrationDetailsRepo.alreadyRegisteredParticipant(registrationDto.getAadhar()));
-            logger.info("AADhar value --{}", registrationDto.getAadhar());
+            logger.info("Aadhar value --{}", registrationDto.getAadhar());
             if(registrationDetailsRepo.alreadyRegisteredParticipant(registrationDto.getAadhar()) == 0){
                 registrationDetails.setEventName(registrationDto.getEventName());
                 registrationDetails.setParticipantName(registrationDto.getParticipantName());
@@ -137,11 +148,11 @@ public class LoginController {
                 registrationDetails.setGender(registrationDto.getGender());
                 registrationDetails.setContactNumber(registrationDto.getContactNumber());
                 registrationDetails.setEmergencyContact(registrationDto.getEmergencyContact());
-                registrationDetails.setImage(compressedImage);
                 registrationDetails.setTsize(registrationDto.getTsize());
                 registrationDetailsRepo.save(registrationDetails);
                 logger.info("Check --{}", registrationDetails);
                 String participantNumber = registrationDetailsRepo.getParticipantNumber(registrationDetails.getAadhar());
+                mailHandler.sendRegistrationConfirmationEmail(registrationDetails);
                 return new ResponseEntity<>(new ApiResponse(HttpStatus.OK,"Data inserted successfully and the paticipant number is: " + participantNumber),HttpStatus.OK);
         }
             else{
