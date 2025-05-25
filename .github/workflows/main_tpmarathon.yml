@@ -61,4 +61,4 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'halwacitymarathon'
-          package: 'java-app/app.jar'
+          package: 'java-app'
