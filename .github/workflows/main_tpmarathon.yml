@@ -28,7 +28,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: target/halwaCityMarathon-0.0.1-SNAPSHOT.jar
+          path: target/app.jar
 
   deploy:
     runs-on: ubuntu-latest
