@@ -28,7 +28,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: target/app.jar
+          path: target/halwaCityMarathon-0.0.1-SNAPSHOT.jar
 
   deploy:
     runs-on: ubuntu-latest
@@ -44,7 +44,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: java-app
-          path: .
+          path: ./java-app
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -57,4 +57,4 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'halwacitymarathon'
-          package: 'app.jar'
+          package: 'target/halwaCityMarathon-0.0.1-SNAPSHOT.jar'
