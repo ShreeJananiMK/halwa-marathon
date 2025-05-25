@@ -44,7 +44,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: java-app
-          path: ./java-app
+          path: .
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -52,9 +52,9 @@ jobs:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_A23292552FC34981AF5DC17CBB61D51B }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A5385DDFF23E49DCA4983E3A83C9FD77 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_CE3BFA43EFD0428E98C0FA29163414C5 }}
-        
+
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'halwacitymarathon'
-          package: 'java-app/app.jar'
+          package: 'app.jar'
