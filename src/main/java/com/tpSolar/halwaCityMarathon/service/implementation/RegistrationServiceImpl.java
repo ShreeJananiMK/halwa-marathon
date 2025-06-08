@@ -46,7 +46,7 @@ public class RegistrationServiceImpl implements RegistrationDetailsService {
             totalRegistrationList.setEmail(registrations.getEmail());
             totalRegistrationList.setEventName(registrations.getEventName());
             totalRegistrationList.setTsize(registrations.getTsize());
-            totalRegistrationList.setImage(registrations.getImage()!= null ? Base64.getEncoder().encodeToString(registrations.getImage()) : null);
+            totalRegistrationList.setImage(null);
             totalRegistrationList.setParticipantId(registrations.getId());
             totalRegistrationList.setParticipantName(registrations.getParticipantName());
             participantRegistrationList.add(totalRegistrationList);
