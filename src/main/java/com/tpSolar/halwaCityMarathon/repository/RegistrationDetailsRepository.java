@@ -14,4 +14,8 @@ public interface RegistrationDetailsRepository extends JpaRepository<Registratio
 
     @Query(value= "select participant_number from registration_details where participant_aadhar = ?1 ",nativeQuery = true)
     String getParticipantNumber (String aadhar);
+    
+    @Query(value = "select participant_number, event_name, participant_name, dob, participant_age, participant_gender, participant_aadhar, participant_blood_group, " +
+            "participant_email, participant_contact, participant_emergency_contact, participant_tsize from registration_details ", nativeQuery = true)
+    List<Object[]> getRegistrationsInfo();
 }
