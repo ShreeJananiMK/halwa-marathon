@@ -9,5 +9,5 @@ import java.util.Map;
 
 public interface RegistrationDetailsService {
 
-    Page<RegistrationResponseDto> getRegistrationDetails(Map<String, String> requestParams, Pageable pageable);
+    Page<RegistrationResponseDto> getRegistrationDetails(Map<String, String> requestParams, Pageable pageable) throws Exception;
 }
