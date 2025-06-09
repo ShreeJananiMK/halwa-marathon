@@ -29,27 +29,27 @@ public class RegistrationServiceImpl implements RegistrationDetailsService {
     @Autowired
     RegistrationDetailsRepository registrationDetailsRepository;
     @Override
-    public Page<RegistrationResponseDto> getRegistrationDetails(Map<String, String> requestParams, Pageable pageable) {
+    public Page<RegistrationResponseDto> getRegistrationDetails(Map<String, String> requestParams, Pageable pageable) throws Exception{
         Pageable resolvedPageable = webConfig.resolvePageable(requestParams, pageable);
         List<Object[]> registrationList = registrationDetailsRepository.getRegistrationsInfo();
         List<RegistrationResponseDto> participantRegistrationList = new ArrayList<>();
         for(Object[] registrations: registrationList){
             logger.info("The Participant Registration --{}",registrations);
             RegistrationResponseDto totalRegistrationList = new RegistrationResponseDto();
-            totalRegistrationList.setAadhar(registrations[6].toString());
-            totalRegistrationList.setAge(registrations[4].toString());
-            totalRegistrationList.setContactNumber(registrations[9].toString());
-            totalRegistrationList.setBloodGroup(registrations[7].toString());
-            totalRegistrationList.setDob(LocalDate.parse(registrations[3].toString()));
-            totalRegistrationList.setGender(registrations[5].toString());
-            totalRegistrationList.setEmergencyContact(registrations[10].toString());
-            totalRegistrationList.setEmail(registrations[8].toString());
-            totalRegistrationList.setEventName(registrations[1].toString());
-            totalRegistrationList.setTsize(registrations[11].toString());
+            totalRegistrationList.setAadhar(registrations[6] != null? registrations[6].toString(): null);
+            totalRegistrationList.setAge(registrations[4]!= null? registrations[4].toString(): null);
+            totalRegistrationList.setContactNumber(registrations[9]!= null? registrations[9].toString(): null);
+            totalRegistrationList.setBloodGroup(registrations[7]!= null? registrations[7].toString(): null);
+            totalRegistrationList.setDob(registrations[3]!= null? LocalDate.parse(registrations[3].toString()):null);
+            totalRegistrationList.setGender(registrations[5]!= null? registrations[5].toString() : null);
+            totalRegistrationList.setEmergencyContact(registrations[10]!= null? registrations[10].toString(): null);
+            totalRegistrationList.setEmail(registrations[8]!= null? registrations[8].toString(): null);
+            totalRegistrationList.setEventName(registrations[1]!= null? registrations[1].toString(): null);
+            totalRegistrationList.setTsize(registrations[11]!= null? registrations[11].toString():null);
             //totalRegistrationList.setImage(registrations.getImage()!= null ? Base64.getEncoder().encodeToString(registrations.getImage()) : null);
             totalRegistrationList.setImage(null);
-            totalRegistrationList.setParticipantId((Long) registrations[0]);
-            totalRegistrationList.setParticipantName(registrations[2].toString());
+            totalRegistrationList.setParticipantId((Long) registrations[0]!=null? (Long) registrations[0]: null);
+            totalRegistrationList.setParticipantName(registrations[2]!= null? registrations[2].toString(): null);
             participantRegistrationList.add(totalRegistrationList);
         }
 
