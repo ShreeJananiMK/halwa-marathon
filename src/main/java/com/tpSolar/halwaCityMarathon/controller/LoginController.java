@@ -166,7 +166,7 @@ public class LoginController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/registrations")
-    public ResponseEntity<?> getRegistrationDetails(@RequestParam Map<String, String> requestParams, @PageableDefault(page = 0, size = 20) Pageable pageable){
+    public ResponseEntity<?> getRegistrationDetails(@RequestParam Map<String, String> requestParams, @PageableDefault(page = 0, size = 20) Pageable pageable) throws Exception{
         Page<RegistrationResponseDto> result = registrationDetailsService.getRegistrationDetails(requestParams, pageable);
         return new ResponseEntity<>(new ApiResponse(HttpStatus.OK, result), HttpStatus.OK);
     }
