@@ -57,7 +57,7 @@ public class CsvFile {
 
                 String name = getCellValue(row, headerMap.get("participant name"));
                 String email = getCellValue(row, headerMap.get("email"));
-                //String aadharNumber = getCellValue(row, headerMap.get("aadhar number"));
+                String aadharNumber = getCellValue(row, headerMap.get("aadhar number"));
                 String contactNumber = getCellValue(row, headerMap.get("contact number"));
                 String emergencyContactNumber = getCellValue(row, headerMap.get("emergency contact number"));
 
