@@ -48,7 +48,7 @@ public class CsvFile {
                 headerMap.put(cell.getStringCellValue().trim().toLowerCase(), cell.getColumnIndex());
             }
 
-            Set<String> aadhaarList = new HashSet<>();
+           // Set<String> aadhaarList = new HashSet<>();
 
             // Iterate rows and validate before insert
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
@@ -57,11 +57,11 @@ public class CsvFile {
 
                 String name = getCellValue(row, headerMap.get("participant name"));
                 String email = getCellValue(row, headerMap.get("email"));
-                String aadharNumber = getCellValue(row, headerMap.get("aadhar number"));
+                //String aadharNumber = getCellValue(row, headerMap.get("aadhar number"));
                 String contactNumber = getCellValue(row, headerMap.get("contact number"));
                 String emergencyContactNumber = getCellValue(row, headerMap.get("emergency contact number"));
 
-                if (!AADHAR_PATTERN.matcher(aadharNumber).matches()) {
+                /*if (!AADHAR_PATTERN.matcher(aadharNumber).matches()) {
                     String msg = " Invalid Aadhar in row " + i + ",";
                     resultMsg.append(msg);
                     logger.info("Invalid Aadhar in row ---{}", i);
@@ -81,7 +81,7 @@ public class CsvFile {
                     resultMsg.append(msg);
                     logger.info("Aadhar already exists ---{}", aadharNumber);
                     continue;
-                }
+                } */
 
                 if (!CONTACT_PATTERN.matcher(contactNumber).matches()) {
                     String msg = " Invalid contact number in row " + i + ",";
